@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+#
+# Takes the current repository makes a copy in a tmp dir,
+# with all files unencrypted, runs the provided command,
+# then shreds the temp dir.
+#
+
+set -e
+. _blackbox_common.sh
+
+ORIGINAL_PWD=$(vcs_relative_path .)
+
+TMP_DIR=$(mktemp -d)
+
+cp -aT $REPOBASE $TMP_DIR
+
+cd $TMP_DIR
+
+echo '========== Decrypting new/changed files: START'
+while read unencrypted_file; do
+  encrypted_file=$(get_encrypted_filename "$unencrypted_file")
+  decrypt_file_overwrite "$encrypted_file" "$unencrypted_file"
+  rm $encrypted_file
+done <"$BB_FILES"
+echo '========== Decrypting new/changed files: DONE'
+
+cd $ORIGINAL_PWD
+
+$@ || true
+
+cd $TMP_DIR
+
+echo '========== Shredding decrypted files: START'
+while read unencrypted_file; do
+  shred_file $unencrypted_file
+done <"$BB_FILES"
+echo '========== Shredding decrypted files: DONE'
+
+rm -rf $TMP_DIR
