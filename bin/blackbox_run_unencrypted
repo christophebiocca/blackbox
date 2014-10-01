@@ -13,7 +13,9 @@ ORIGINAL_PWD=$(vcs_relative_path .)
 
 TMP_DIR=$(mktemp -d)
 
-cp -aT $REPOBASE $TMP_DIR
+cd $REPOBASE
+
+git archive HEAD | tar -xC $TMP_DIR
 
 cd $TMP_DIR
 
