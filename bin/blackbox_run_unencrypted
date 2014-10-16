@@ -31,7 +31,7 @@ cd $TMP_DIR
 
     cd $ORIGINAL_PWD
 
-    $@
+    "$@"
 )
 
 wait
